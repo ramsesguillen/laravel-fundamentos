@@ -12,32 +12,33 @@
     <div class="container">
         @include('partials.nav')
         <h1>Usuarios</h1>
-        <a class="btn btn-primary pull-right" href="{{ route('users.create') }}">Nuevo usuario</a>
         <table class="table">
             <thead class="thead-dark">
                 <tr>
                 <th scope="col">#</th>
                 <th scope="col">Nombre</th>
-                <th scope="col">Rol</th>
+                <th scope="col">emial</th>
+                <th scope="col">Mensaje</th>
+                <th scope="col">Nota</th>
                 <th scope="col">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ( $users as $user )
+                @forelse ( $messages as $message )
                     <tr>
-                        <th scope="row">{{ $user->id }}</th>
-                        <td><a href="{{ route('users.show', $user->id) }}">{{ $user->name }}</a></td>
+                        <th scope="row">{{ $message->id }}</th>
+                        @if( $message->user_id )
+                            <td><a href="{{ route('users.show', $message->user->id) }}">{{ $message->user->name }}</a></td>
+                            <td>{{ $message->user->email }}</td>
+                        @else
+                            <td>{{ $message->name }}</td>
+                            <td>{{ $message->email }}</td>
+                        @endif
+                        <td><a href="{{ route('messages.show', $message->id) }}">{{ $message->message }}</a></td>
+                        <td>{{ $message->nota?->body }}</td>
                         <td>
-                            {{ $user->rols->pluck('display_name')->implode(', ') }}
-                            {{-- @forelse ( $user->rols as $rol )
-                                <span>{{ $rol->display_name }}</span>
-                            @empty
-                                <span>no rol</span>
-                            @endforelse --}}
-                        </td>
-                        <td>
-                            <a href="{{ route('users.edit', $user->id ) }}" class="btn btn-primary">Editar</a>
-                            <form action="{{ route('users.destroy', $user->id ) }}" method="post">
+                            <a href="{{ route('messages.edit', $message->id ) }}" class="btn btn-primary">Editar</a>
+                            <form action="{{ route('messages.destroy', $message->id ) }}" method="post">
                                 @method('DELETE')
                                 @csrf
                                 <button class="btn btn-danger" type="submit">Eliminar</button>
@@ -45,7 +46,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><th>No hay usuarios</th></tr>
+                    <tr><th>No hay datos</th></tr>
                 @endforelse
             </tbody>
         </table>

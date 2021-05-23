@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -9,7 +12,8 @@ class UserController extends Controller
 {
     function __construct()
     {
-        $this->middleware('roles:admin, estudiante');
+        $this->middleware('auth', ['except' => ['show'] ]);
+        $this->middleware('roles:admin', ['except' => ['edit', 'update', 'show'] ]);
     }
     /**
      * Display a listing of the resource.
@@ -29,7 +33,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $rols = Rol::pluck('display_name', 'id');
+        return view('users.creeate', compact('rols'));
     }
 
     /**
@@ -38,9 +43,11 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CreateUserRequest $request)
     {
-        //
+        $user = User::create( $request->validated() );
+        $user->rols()->attach( $request->rols );
+        return redirect()->route('users.index');
     }
 
     /**
@@ -51,7 +58,9 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
+        $user = User::find( $id );
+        // $this->authorize( 'edit',$user );
+        return view('users.show', compact('user'));
     }
 
     /**
@@ -62,7 +71,11 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = User::find( $id );
+        $this->authorize( 'edit',$user );
+
+        $rols = Rol::pluck('display_name', 'id');
+        return view('users.edit', compact('user', 'rols'));
     }
 
     /**
@@ -72,9 +85,13 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
-        //
+        $user = User::find( $id );
+        $this->authorize( 'update',$user );
+        $user->update( $request->validated() );
+        $user->rols()->sync( $request->rols ); // agrega el datos en la table rol_user
+        return back();
     }
 
     /**
@@ -85,6 +102,9 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = User::find( $id );
+        $this->authorize('delete', $user);
+        $user->delete();
+        return back();
     }
 }

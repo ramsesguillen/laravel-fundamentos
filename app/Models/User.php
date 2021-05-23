@@ -42,15 +42,44 @@ class User extends Authenticatable
     ];
 
 
-    public function hasRoles( array $rols )
+    public function setPasswordAttribute( $password )
     {
-        foreach ($rols as $rol)
-        {
-            if ( $this->rol === $rol )
-            {
-                return true;
-            }
-        }
-        return false;
+        $this->attributes['password'] = bcrypt( $password );
+    }
+
+    public function messages()
+    {
+        return $this->hasMany( Message::class );
+    }
+
+
+    public function rols()
+    {
+        return $this->belongsToMany( Rol::class );
+        // return $this->belongsTo( Rol::class );
+    }
+
+
+    public function hasRoles( array $rols ) : bool
+    {
+        return $this->rols->pluck('name')->intersect( $rols )->count();
+        // foreach ($rolss as $rol)
+        // {
+        //     return $this->rolss->pluck('name')->contains( $rol );
+        //     // foreach ( $this->rols as $userRole )
+        //     // {
+        //     //     if ( $userRole->name === $rol )
+        //     //     {
+        //     //         return true;
+        //     //     }
+        //     // }
+        // }
+        // return false;
+    }
+
+
+    public function isAdmin()
+    {
+        return $this->hasRoles(['admin']);
     }
 }
